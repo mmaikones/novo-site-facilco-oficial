@@ -1,0 +1,7 @@
+{
+  "name": "Facilco Engenharia",
+  "description": "Industrial engineering and protection solutions website with AI consultant.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

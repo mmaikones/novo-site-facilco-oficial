@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facilco Engenharia - Soluções Industriais e Corporativas</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons-facilco/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons-facilco/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons-facilco/favicon-16x16.png">
+    <link rel="shortcut icon" href="/favicons-facilco/favicon.ico">
+    <link rel="manifest" href="/favicons-facilco/manifest.json">
+    <meta name="msapplication-config" content="/favicons-facilco/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Barlow+Condensed:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-yellow': '#FFB400',
+                        'brand-dark': '#1A1A1A',
+                        'brand-gray': '#2A2A2A',
+                        'brand-light': '#F3F4F6',
+                    },
+                    fontFamily: {
+                        'sans': ['Barlow', 'sans-serif'],
+                        'display': ['Barlow Condensed', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        .hover-grow {
+            transition: transform 0.3s ease;
+        }
+
+        .automotivo-font-theme h1,
+        .automotivo-font-theme h2,
+        .automotivo-font-theme h3,
+        .automotivo-font-theme h4,
+        .automotivo-font-theme h5,
+        .automotivo-font-theme h6 {
+            font-family: 'Ranade', 'Barlow Condensed', sans-serif;
+        }
+
+        .automotivo-font-theme .automotivo-subtitle {
+            font-family: 'Lato', 'Barlow', sans-serif;
+        }
+
+        .hover-grow:hover {
+            transform: scale(1.02);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #FFB400;
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/hero-cinematic.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        @media (min-width: 768px) {
+            .hero-bg {
+                background-attachment: fixed;
+            }
+        }
+
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        /* Typography for markdown content */
+        .prose p {
+            margin-bottom: 0.5rem;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prose strong {
+            color: #1A1A1A;
+            font-weight: 700;
+        }
+
+        .prose a {
+            color: #16a34a;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .prose a:hover {
+            text-decoration: underline;
+        }
+
+        .prose a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+
+        .animate-marquee:hover {
+            animation-play-state: paused;
+        }
+
+        /* Mapa de Atuacao */
+        #mapa-atuacao {
+            padding: 56px 0;
+            background: linear-gradient(140deg, #eef2f7 0%, #e2e8f0 48%, #d8e0ea 100%);
+        }
+
+        .mapa-split {
+            display: grid;
+            grid-template-columns: minmax(320px, 1.05fr) minmax(420px, 1fr);
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .mapa-copy .section-tag {
+            display: inline-block;
+            background: #FDB933;
+            color: #1a1a1a;
+            padding: 7px 16px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.6px;
+            margin-bottom: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        #mapa-atuacao h2 {
+            font-size: clamp(1.8rem, 3.2vw, 2.45rem);
+            line-height: 1.14;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.95rem;
+            max-width: 16ch;
+        }
+
+        #mapa-atuacao .subtitle {
+            font-size: clamp(1rem, 1.5vw, 1.125rem);
+            color: #475569;
+            max-width: 48ch;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .mapa-container {
+            position: relative;
+            margin: 0;
+            width: 100%;
+            max-width: 560px;
+            justify-self: end;
+        }
+
+        .mapa-brasil-placeholder {
+            --rx: 0deg;
+            --ry: 0deg;
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            border-radius: 20px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 30% 12%, rgba(255, 255, 255, 0.82), transparent 45%),
+                radial-gradient(circle at 80% 90%, rgba(255, 180, 0, 0.25), transparent 50%),
+                linear-gradient(145deg, #0f172a 0%, #1e293b 52%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.32);
+            box-shadow:
+                0 22px 44px rgba(15, 23, 42, 0.26),
+                inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry));
+            transition: transform 250ms ease, box-shadow 250ms ease;
+            will-change: transform;
+        }
+
+        .mapa-brasil-placeholder:hover {
+            box-shadow:
+                0 30px 56px rgba(15, 23, 42, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .mapa-brasil-placeholder::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 32%, transparent 68%, rgba(255, 255, 255, 0.08));
+            mix-blend-mode: screen;
+        }
+
+        .mapa-brasil-placeholder img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 1.2rem;
+            filter: drop-shadow(0 14px 20px rgba(0, 0, 0, 0.45)) contrast(1.08) brightness(1.08) saturate(1.08);
+        }
+
+        .pin {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            transition: transform 0.25s ease, filter 0.25s ease;
+            z-index: 10;
+            animation: pinPulse 2.6s ease-in-out infinite;
+        }
+
+        .pin:hover {
+            transform: translate(-50%, -100%) scale(1.12);
+            filter: brightness(1.08);
+            z-index: 15;
+        }
+
+        .pin .pin-icon {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            display: block;
+            background: radial-gradient(circle at 30% 30%, #ffe08a 0%, #ffb400 62%, #b87400 100%);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 5px rgba(255, 180, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .pin .pin-label {
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .pin:hover .pin-label {
+            opacity: 1;
+        }
+
+        @keyframes pinPulse {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 0 rgba(255, 180, 0, 0.2));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 8px rgba(255, 180, 0, 0.45));
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .mapa-split {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .mapa-copy {
+                text-align: center;
+            }
+
+            #mapa-atuacao h2 {
+                margin-left: auto;
+                margin-right: auto;
+                max-width: 20ch;
+            }
+
+            #mapa-atuacao .subtitle {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .mapa-container {
+                justify-self: center;
+                max-width: 640px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #mapa-atuacao {
+                padding: 44px 0;
+            }
+
+            .mapa-brasil-placeholder {
+                aspect-ratio: 1 / 1;
+                border-radius: 16px;
+            }
+
+            .mapa-brasil-placeholder img {
+                padding: 1rem;
+            }
+
+            .pin .pin-icon {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* Export PDF slides */
+        .pdf-slide {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .pdf-contact-button {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            background: #FFB400;
+            color: #1a1a1a;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 8px 20px rgba(255, 180, 0, 0.35);
+        }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
+  }
+}
+</script>
+</head>
+
+<body class="font-sans text-gray-600 antialiased overflow-x-hidden relative">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
