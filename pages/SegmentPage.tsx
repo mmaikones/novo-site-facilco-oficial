@@ -20,7 +20,6 @@ import ChatWidget from '../components/ChatWidget';
 import PresentationOverlay from '../components/PresentationOverlay';
 import WhereWeAre from '../components/WhereWeAre';
 import FullBleedImageCarousel from '../components/FullBleedImageCarousel';
-import { buildSegmentPresentationPdf } from '../utils/pdfDownload';
 
 const WHATSAPP_LINK = 'https://wa.me/5519996223433';
 
@@ -36,7 +35,6 @@ const SegmentPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showPresentation, setShowPresentation] = useState(false);
-    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [selectedAutoModule, setSelectedAutoModule] = useState<string | null>(null);
     const automotivoModuleContentRef = useRef<HTMLElement>(null);
 
@@ -86,56 +84,6 @@ const SegmentPage: React.FC = () => {
                 scrollToAutomotivoModuleContent();
             });
         });
-    };
-
-    const startPdfDownload = async () => {
-        if (isDownloadingPdf) return;
-
-        const pendingWindow = window.open('', '_blank', 'noopener,noreferrer');
-        if (pendingWindow) {
-            pendingWindow.document.write(`
-                <html>
-                    <head><title>Gerando PDF...</title></head>
-                    <body style="font-family: Arial, sans-serif; padding: 24px;">
-                        <h2 style="margin: 0 0 8px;">Gerando PDF em alta qualidade...</h2>
-                        <p style="margin: 0; color: #555;">Aguarde alguns segundos.</p>
-                    </body>
-                </html>
-            `);
-            pendingWindow.document.close();
-        }
-
-        try {
-            setIsDownloadingPdf(true);
-            const pdfBlob = await buildSegmentPresentationPdf(presentationSegment);
-            const blobUrl = URL.createObjectURL(pdfBlob);
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            if (isMobile && pendingWindow && !pendingWindow.closed) {
-                pendingWindow.location.href = blobUrl;
-            } else {
-                if (pendingWindow && !pendingWindow.closed) {
-                    pendingWindow.close();
-                }
-                const downloadLink = document.createElement('a');
-                downloadLink.href = blobUrl;
-                downloadLink.download = `facilco-${segment.id}-apresentacao.pdf`;
-                downloadLink.rel = 'noopener';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            }
-
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        } catch (error) {
-            console.error(error);
-            if (pendingWindow && !pendingWindow.closed) {
-                pendingWindow.close();
-            }
-            window.alert('Nao foi possivel gerar o PDF agora. Tente novamente em alguns segundos.');
-        } finally {
-            setIsDownloadingPdf(false);
-        }
     };
 
     const headerTitle = segment.id === 'templos-religiosos' ? 'Templos religiosos' : segment.title;
@@ -643,18 +591,7 @@ const SegmentPage: React.FC = () => {
                     isOpen={showPresentation}
                     onClose={() => setShowPresentation(false)}
                     segment={presentationSegment}
-                    onDownload={startPdfDownload}
-                    isDownloading={isDownloadingPdf}
                 />
-
-                {isDownloadingPdf && (
-                    <div className="fixed inset-0 z-[120] bg-black/70 flex items-center justify-center px-6">
-                        <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl">
-                            <h3 className="text-2xl font-display font-bold text-brand-dark mb-4">Gerando PDF</h3>
-                            <p className="text-gray-600">Preparando a versão em alta qualidade para download.</p>
-                        </div>
-                    </div>
-                )}
 
                 <ChatWidget isOpen={isChatOpen} toggleChat={toggleChat} />
             </div>
@@ -1104,18 +1041,7 @@ const SegmentPage: React.FC = () => {
                 isOpen={showPresentation}
                 onClose={() => setShowPresentation(false)}
                 segment={presentationSegment}
-                onDownload={startPdfDownload}
-                isDownloading={isDownloadingPdf}
             />
-
-            {isDownloadingPdf && (
-                <div className="fixed inset-0 z-[120] bg-black/70 flex items-center justify-center px-6">
-                    <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl">
-                        <h3 className="text-2xl font-display font-bold text-brand-dark mb-4">Gerando PDF</h3>
-                        <p className="text-gray-600">Preparando a versão em alta qualidade para download.</p>
-                    </div>
-                </div>
-            )}
 
             <ChatWidget isOpen={isChatOpen} toggleChat={toggleChat} />
         </div>

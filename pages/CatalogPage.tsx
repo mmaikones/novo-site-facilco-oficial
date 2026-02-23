@@ -1,14 +1,12 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Download, Play, Home, ChevronRight, Sparkles, Layers, Shield, HardHat, Truck, ChevronDown } from 'lucide-react';
+import { Package, Play, Home, ChevronRight, Sparkles, Layers, Shield, HardHat, Truck, ChevronDown } from 'lucide-react';
 import { CATALOG_PRODUCTS, CATALOG_CATEGORIES } from '../data/catalog';
 import { CatalogItem } from '../types';
 import PresentationOverlay from '../components/PresentationOverlay';
 import ChatWidget from '../components/ChatWidget';
-import { buildCatalogDownloadPdf } from '../utils/pdfDownload';
 
 const WHATSAPP_LINK = 'https://wa.me/5519996223433';
-const STATIC_CATALOG_PDF_PATH = '/downloads/facilco-catalogo-produtos.pdf';
 const CATEGORY_META: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; label: string }> = {
     Proteção: { icon: Shield, label: 'Proteção' },
     'Trabalho em Altura': { icon: HardHat, label: 'Trabalho em Altura' },
@@ -54,7 +52,6 @@ const SUBCATEGORY_ORDER_BY_CATEGORY: Record<string, string[]> = {
 
 const CatalogPage: React.FC = () => {
     const [showPresentation, setShowPresentation] = useState(false);
-    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const [activeCategory, setActiveCategory] = useState<'Todos' | 'Proteção' | 'Trabalho em Altura' | 'Logística'>('Todos');
     const [selectedProduct, setSelectedProduct] = useState<CatalogItem | null>(null);
     const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
@@ -218,71 +215,6 @@ const CatalogPage: React.FC = () => {
         []
     );
 
-    const startPdfDownload = async () => {
-        if (isDownloadingPdf) return;
-
-        const pendingWindow = window.open('', '_blank', 'noopener,noreferrer');
-        if (pendingWindow) {
-            pendingWindow.document.write(`
-                <html>
-                    <head><title>Gerando PDF...</title></head>
-                    <body style="font-family: Arial, sans-serif; padding: 24px;">
-                        <h2 style="margin: 0 0 8px;">Gerando catálogo técnico...</h2>
-                        <p style="margin: 0; color: #555;">Aguarde alguns segundos.</p>
-                    </body>
-                </html>
-            `);
-            pendingWindow.document.close();
-        }
-
-        try {
-            setIsDownloadingPdf(true);
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            const triggerDownload = (url: string, downloadName?: string) => {
-                if (isMobile && pendingWindow && !pendingWindow.closed) {
-                    pendingWindow.location.href = url;
-                    return;
-                }
-
-                if (pendingWindow && !pendingWindow.closed) {
-                    pendingWindow.close();
-                }
-
-                const downloadLink = document.createElement('a');
-                downloadLink.href = url;
-                if (downloadName) downloadLink.download = downloadName;
-                downloadLink.rel = 'noopener';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            };
-
-            const staticUrl = `${STATIC_CATALOG_PDF_PATH}?v=${Date.now()}`;
-            try {
-                const staticPdfResponse = await fetch(staticUrl, { method: 'HEAD' });
-                if (staticPdfResponse.ok) {
-                    triggerDownload(staticUrl, 'facilco-catalogo-produtos.pdf');
-                    return;
-                }
-            } catch (error) {
-                console.warn('PDF estático indisponível, usando fallback dinâmico.', error);
-            }
-
-            const pdfBlob = await buildCatalogDownloadPdf(baseProducts, { title: 'Catálogo de Produtos Facilco' });
-            const blobUrl = URL.createObjectURL(pdfBlob);
-            triggerDownload(blobUrl, 'facilco-catalogo-produtos.pdf');
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-        } catch (error) {
-            console.error(error);
-            if (pendingWindow && !pendingWindow.closed) {
-                pendingWindow.close();
-            }
-            window.alert('Nao foi possivel gerar o PDF agora. Tente novamente em alguns segundos.');
-        } finally {
-            setIsDownloadingPdf(false);
-        }
-    };
-
     useEffect(() => {
         if (selectedProduct) setCurrentGalleryIndex(0);
         setIsImageExpanded(false);
@@ -388,10 +320,10 @@ const CatalogPage: React.FC = () => {
                             Catálogo de Produtos
                         </h1>
                         <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-lg font-light leading-relaxed">
-                            Todos os produtos Facilco organizados por setor, com visualização completa e download do catálogo técnico.
+                            Todos os produtos Facilco organizados por setor, com visualização completa do catálogo técnico.
                         </p>
 
-                        <div className="grid w-full max-w-xl grid-cols-2 gap-2 md:flex md:w-auto md:max-w-none md:gap-3">
+                        <div className="grid w-full max-w-xl grid-cols-1 gap-2 md:flex md:w-auto md:max-w-none md:gap-3">
                             <button
                                 onClick={() => setShowPresentation(true)}
                                 className="group min-w-0 w-full whitespace-nowrap flex items-center justify-center gap-1.5 bg-brand-yellow text-brand-dark text-[10px] sm:text-xs md:text-sm font-semibold py-2 px-2 sm:px-3 md:px-4 rounded hover:bg-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
@@ -399,15 +331,6 @@ const CatalogPage: React.FC = () => {
                             >
                                 <Play size={15} className="fill-current hidden sm:block" />
                                 Ver Apresentação
-                            </button>
-                            <button
-                                onClick={startPdfDownload}
-                                disabled={isDownloadingPdf}
-                                className="min-w-0 w-full md:w-auto whitespace-nowrap flex items-center justify-center gap-1.5 bg-white/10 backdrop-blur-md text-white border border-white/30 text-[10px] sm:text-xs md:text-sm font-semibold py-2 px-2 sm:px-3 md:px-4 rounded hover:bg-white hover:text-brand-dark transition-all disabled:opacity-70"
-                                style={{ borderRadius: '6px' }}
-                            >
-                                <Download size={15} className="hidden sm:block" />
-                                {isDownloadingPdf ? 'Gerando PDF...' : 'Baixar Catálogo PDF'}
                             </button>
                         </div>
                     </div>
@@ -728,18 +651,7 @@ const CatalogPage: React.FC = () => {
                 isOpen={showPresentation}
                 onClose={() => setShowPresentation(false)}
                 segment={catalogPresentation}
-                onDownload={startPdfDownload}
-                isDownloading={isDownloadingPdf}
             />
-
-            {isDownloadingPdf && (
-                <div className="fixed inset-0 z-[120] bg-black/70 flex items-center justify-center px-6">
-                    <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-2xl">
-                        <h3 className="text-2xl font-display font-bold text-brand-dark mb-4">Gerando PDF</h3>
-                        <p className="text-gray-600">Estamos montando a versão otimizada para download.</p>
-                    </div>
-                </div>
-            )}
 
             <ChatWidget isOpen={isChatOpen} toggleChat={() => setIsChatOpen((prev) => !prev)} />
         </div>

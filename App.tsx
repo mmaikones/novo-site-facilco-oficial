@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
-import SegmentPage from './pages/SegmentPage';
-import CatalogPage from './pages/CatalogPage';
-import CatalogPdfPrintPage from './pages/CatalogPdfPrintPage';
+
+const SegmentPage = lazy(() => import('./pages/SegmentPage'));
+const CatalogPage = lazy(() => import('./pages/CatalogPage'));
+const CatalogPdfPrintPage = lazy(() => import('./pages/CatalogPdfPrintPage'));
+const ManusCatalogPage = lazy(() => import('./pages/ManusCatalogPage'));
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
@@ -19,15 +21,24 @@ const App: React.FC = () => {
   return (
     <>
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/catalogo" element={<CatalogPage />} />
-        <Route path="/catalogo-completo" element={<CatalogPage />} />
-        <Route path="/catalogo-de-produtos" element={<CatalogPage />} />
-        <Route path="/catalogo-pdf-print" element={<CatalogPdfPrintPage />} />
-        {/* Dynamic Route for Segments - matches the paths in segments.ts data */}
-        <Route path="/:id" element={<SegmentPage />} />
-      </Routes>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-white text-brand-dark font-semibold">
+            Carregando...
+          </div>
+        }
+      >
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/catalogo" element={<CatalogPage />} />
+          <Route path="/catalogo-completo" element={<ManusCatalogPage />} />
+          <Route path="/catalogo-manus" element={<ManusCatalogPage />} />
+          <Route path="/catalogo-de-produtos" element={<CatalogPage />} />
+          <Route path="/catalogo-pdf-print" element={<CatalogPdfPrintPage />} />
+          {/* Dynamic Route for Segments - matches the paths in segments.ts data */}
+          <Route path="/:id" element={<SegmentPage />} />
+        </Routes>
+      </Suspense>
     </>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   toggleChat: () => void;
@@ -48,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ toggleChat }) => {
 
           <nav className="hidden lg:flex items-center text-brand-dark" style={{ gap: '29px' }}>
             <a href="#home" className="nav-link text-brand-dark hover:text-brand-yellow transition" style={sharedShadow}>Início</a>
-            <a href="#catalogo" className="nav-link hover:text-brand-yellow transition" style={sharedShadow}>Catálogo</a>
+            <Link to="/catalogo-completo" className="nav-link hover:text-brand-yellow transition" style={sharedShadow}>Catálogo</Link>
             <a href="#servicos-categorias" className="nav-link hover:text-brand-yellow transition" style={sharedShadow}>Segmentos</a>
             <a href="#sobre" className="nav-link hover:text-brand-yellow transition" style={sharedShadow}>Empresa</a>
             <button onClick={toggleChat} className="nav-link hover:text-brand-yellow transition flex items-center gap-1" style={sharedShadow}>
@@ -70,7 +71,7 @@ const Header: React.FC<HeaderProps> = ({ toggleChat }) => {
         {isMobileMenuOpen && (
           <div id="mobile-menu" className="lg:hidden bg-white/95 backdrop-blur-md text-brand-dark p-4 absolute w-full top-full left-0 border-t border-gray-200 shadow-2xl">
             <a href="#home" className="block py-3 border-b border-gray-200 hover:text-brand-yellow font-bold" onClick={toggleMobileMenu}>Início</a>
-            <a href="#catalogo" className="block py-3 border-b border-gray-200 hover:text-brand-yellow font-bold" onClick={toggleMobileMenu}>Catálogo de Produtos</a>
+            <Link to="/catalogo-completo" className="block py-3 border-b border-gray-200 hover:text-brand-yellow font-bold" onClick={toggleMobileMenu}>Catálogo de Produtos</Link>
             <a href="#servicos-categorias" className="block py-3 border-b border-gray-200 hover:text-brand-yellow font-bold" onClick={toggleMobileMenu}>Segmentos</a>
             <button
               onClick={() => { toggleChat(); toggleMobileMenu(); }}

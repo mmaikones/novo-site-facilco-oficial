@@ -267,7 +267,7 @@ const Catalog: React.FC = () => {
 
       <div className="mt-10 flex justify-center">
         <Link
-          to="/catalogo"
+          to="/catalogo-completo"
           className="bg-brand-dark text-white px-8 py-4 rounded-lg font-bold uppercase tracking-wide shadow-lg hover:bg-brand-yellow hover:text-brand-dark transition-all"
         >
           Ver Catálogo Completo

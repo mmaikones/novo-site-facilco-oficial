@@ -4,7 +4,6 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-    Download,
     RotateCw
 } from 'lucide-react';
 import { renderPresentationSlide } from './PresentationSlides';
@@ -14,11 +13,9 @@ interface PresentationOverlayProps {
     isOpen: boolean;
     onClose: () => void;
     segment: any;
-    onDownload?: () => void;
-    isDownloading?: boolean;
 }
 
-const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ isOpen, onClose, segment, onDownload, isDownloading }) => {
+const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ isOpen, onClose, segment }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [showRotateHint, setShowRotateHint] = useState(false);
@@ -85,18 +82,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({ isOpen, onClo
                         <span className="uppercase text-xs font-bold tracking-widest font-display">FECHAR</span>
                     </button>
                 </div>
-                <div className="pointer-events-auto">
-                    {onDownload && (
-                        <button
-                            onClick={onDownload}
-                            disabled={isDownloading}
-                            className="flex items-center gap-2 bg-brand-yellow text-brand-dark px-4 py-2 rounded-lg font-bold text-sm tracking-wide hover:bg-white transition-colors shadow-lg disabled:opacity-70"
-                        >
-                            <Download size={16} />
-                            Baixar PDF
-                        </button>
-                    )}
-                </div>
+                <div className="pointer-events-auto" />
             </div>
 
             {showRotateHint && (
