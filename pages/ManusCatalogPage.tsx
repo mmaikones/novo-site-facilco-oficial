@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Home, MessageCircle, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Expand, Home, MessageCircle, X } from 'lucide-react';
 import ChatWidget from '../components/ChatWidget';
 import { MANUS_MERGED_PRODUCTS_DATA } from '../data/manusCatalogMerged';
 import type { Product } from '../data/manusBase';
@@ -10,10 +10,14 @@ const WHATSAPP_LINK = 'https://wa.me/5519996223433';
 const ManusCatalogPage: React.FC = () => {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
+    const [isImageExpanded, setIsImageExpanded] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const touchStartX = useRef(0);
+    const touchEndX = useRef(0);
 
     useEffect(() => {
         setCurrentGalleryIndex(0);
+        setIsImageExpanded(false);
     }, [selectedProduct?.id]);
 
     const selectedGallery = useMemo(
@@ -30,6 +34,29 @@ const ManusCatalogPage: React.FC = () => {
         if (!selectedGallery.length) return;
         setCurrentGalleryIndex((prev) => (prev - 1 + selectedGallery.length) % selectedGallery.length);
     };
+
+    const closeProductModal = () => {
+        setIsImageExpanded(false);
+        setSelectedProduct(null);
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.targetTouches[0].clientX;
+        touchEndX.current = e.targetTouches[0].clientX;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        touchEndX.current = e.targetTouches[0].clientX;
+    };
+
+    const handleTouchEnd = () => {
+        const delta = touchStartX.current - touchEndX.current;
+        if (delta > 50) nextGallery();
+        if (delta < -50) prevGallery();
+    };
+
+    const openExpandedImage = () => setIsImageExpanded(true);
+    const closeExpandedImage = () => setIsImageExpanded(false);
 
     return (
         <div className="min-h-screen bg-[#f7f7f4] text-brand-dark">
@@ -118,25 +145,40 @@ const ManusCatalogPage: React.FC = () => {
                     <button
                         type="button"
                         className="absolute inset-0 bg-black/75 backdrop-blur-sm"
-                        onClick={() => setSelectedProduct(null)}
+                        onClick={closeProductModal}
                         aria-label="Fechar modal"
                     />
 
-                    <div className="relative z-10 w-full max-w-6xl max-h-[95vh] bg-white rounded-[10px] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+                    <div className="relative z-10 w-full max-w-6xl h-[94vh] md:max-h-[95vh] bg-white rounded-[10px] overflow-hidden shadow-2xl flex flex-col md:flex-row">
                         <button
-                            onClick={() => setSelectedProduct(null)}
+                            onClick={closeProductModal}
                             className="absolute top-3 right-3 z-20 bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition"
                             aria-label="Fechar"
                         >
                             <X size={18} />
                         </button>
 
-                        <div className="w-full md:w-3/5 bg-gray-100 relative min-h-[260px] md:min-h-[580px] flex items-center justify-center">
+                        <div
+                            className="w-full md:w-3/5 bg-gray-100 relative h-[44vh] min-h-[280px] md:h-auto md:min-h-[580px] flex items-center justify-center"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            style={{ touchAction: 'pan-y' }}
+                        >
                             <img
                                 src={selectedGallery[currentGalleryIndex] ?? selectedProduct.image}
                                 alt={selectedProduct.title}
-                                className="w-full h-full object-contain p-3 md:p-5"
+                                className="w-full h-full object-contain p-3 md:p-5 cursor-zoom-in"
+                                onClick={openExpandedImage}
                             />
+
+                            <button
+                                onClick={openExpandedImage}
+                                className="absolute bottom-3 right-3 md:bottom-4 md:right-4 inline-flex items-center gap-1.5 bg-black/70 text-white text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full hover:bg-black/85 transition"
+                            >
+                                <Expand size={13} />
+                                Ampliar
+                            </button>
 
                             {selectedGallery.length > 1 && (
                                 <>
@@ -164,6 +206,10 @@ const ManusCatalogPage: React.FC = () => {
                                                 aria-label={`Ir para foto ${index + 1}`}
                                             />
                                         ))}
+                                    </div>
+
+                                    <div className="absolute top-3 left-3 bg-black/60 text-white text-[10px] md:text-xs uppercase tracking-widest font-bold px-2.5 py-1 rounded-full">
+                                        {currentGalleryIndex + 1}/{selectedGallery.length}
                                     </div>
                                 </>
                             )}
@@ -199,6 +245,69 @@ const ManusCatalogPage: React.FC = () => {
                                 Solicitar Cotação
                             </a>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedProduct && isImageExpanded && (
+                <div className="fixed inset-0 z-[90] bg-black/95 flex items-center justify-center p-3 md:p-6">
+                    <button
+                        type="button"
+                        className="absolute inset-0"
+                        aria-label="Fechar visualização da imagem"
+                        onClick={closeExpandedImage}
+                    />
+
+                    <div
+                        className="relative z-10 w-full h-full max-w-6xl flex items-center justify-center"
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        style={{ touchAction: 'pan-y' }}
+                    >
+                        <button
+                            onClick={closeExpandedImage}
+                            className="absolute top-3 right-3 z-20 bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 hover:text-white transition"
+                            aria-label="Fechar visualização"
+                        >
+                            <X size={18} />
+                        </button>
+
+                        <img
+                            src={selectedGallery[currentGalleryIndex] ?? selectedProduct.image}
+                            alt={selectedProduct.title}
+                            className="max-w-full max-h-full object-contain"
+                        />
+
+                        {selectedGallery.length > 1 && (
+                            <>
+                                <button
+                                    onClick={prevGallery}
+                                    className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/85 text-brand-dark w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
+                                    aria-label="Imagem anterior"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <button
+                                    onClick={nextGallery}
+                                    className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/85 text-brand-dark w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
+                                    aria-label="Próxima imagem"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
+
+                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                                    {selectedGallery.map((_, index) => (
+                                        <button
+                                            key={`${selectedProduct.id}-expanded-gallery-${index}`}
+                                            onClick={() => setCurrentGalleryIndex(index)}
+                                            className={`h-2 rounded-full transition-all ${index === currentGalleryIndex ? 'w-7 bg-brand-yellow' : 'w-2 bg-gray-400'}`}
+                                            aria-label={`Ir para foto ${index + 1}`}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
