@@ -61,12 +61,6 @@ const Catalog: React.FC = () => {
     setIsImageExpanded(false);
     setExpandedZoom(1);
   }, [selectedProduct]);
-
-  useEffect(() => {
-    setIsImageExpanded(false);
-    setExpandedZoom(1);
-  }, [currentGalleryIndex]);
-
   useEffect(() => {
     const maxIndex = Math.max(0, filteredProducts.length - itemsPerPage);
     if (currentIndex > maxIndex) {

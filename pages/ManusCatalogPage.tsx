@@ -260,6 +260,7 @@ const ManusCatalogPage: React.FC = () => {
 
                     <div
                         className="relative z-10 w-full h-full max-w-6xl flex items-center justify-center"
+                        onClick={(e) => e.stopPropagation()}
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                         style={{ touchAction: 'pan-y' }}
@@ -281,14 +282,20 @@ const ManusCatalogPage: React.FC = () => {
                         {selectedGallery.length > 1 && (
                             <>
                                 <button
-                                    onClick={prevGallery}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        prevGallery();
+                                    }}
                                     className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/85 text-brand-dark w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
                                     aria-label="Imagem anterior"
                                 >
                                     <ChevronLeft size={20} />
                                 </button>
                                 <button
-                                    onClick={nextGallery}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        nextGallery();
+                                    }}
                                     className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/85 text-brand-dark w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
                                     aria-label="Próxima imagem"
                                 >

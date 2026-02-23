@@ -222,12 +222,6 @@ const CatalogPage: React.FC = () => {
         setIsImageExpanded(false);
         setExpandedZoom(1);
     }, [selectedProduct]);
-
-    useEffect(() => {
-        setIsImageExpanded(false);
-        setExpandedZoom(1);
-    }, [currentGalleryIndex]);
-
     useEffect(() => {
         if (activeCategory === 'Todos') {
             setOpenCategories({
