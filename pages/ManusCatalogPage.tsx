@@ -13,7 +13,7 @@ const ManusCatalogPage: React.FC = () => {
     const [isImageExpanded, setIsImageExpanded] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const touchStartX = useRef(0);
-    const touchEndX = useRef(0);
+    const touchStartY = useRef(0);
 
     useEffect(() => {
         setCurrentGalleryIndex(0);
@@ -42,17 +42,18 @@ const ManusCatalogPage: React.FC = () => {
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.targetTouches[0].clientX;
-        touchEndX.current = e.targetTouches[0].clientX;
+        touchStartY.current = e.targetTouches[0].clientY;
     };
 
-    const handleTouchMove = (e: React.TouchEvent) => {
-        touchEndX.current = e.targetTouches[0].clientX;
-    };
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const deltaX = endX - touchStartX.current;
+        const deltaY = endY - touchStartY.current;
 
-    const handleTouchEnd = () => {
-        const delta = touchStartX.current - touchEndX.current;
-        if (delta > 50) nextGallery();
-        if (delta < -50) prevGallery();
+        if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        if (deltaX < 0) nextGallery();
+        if (deltaX > 0) prevGallery();
     };
 
     const openExpandedImage = () => setIsImageExpanded(true);
@@ -161,7 +162,6 @@ const ManusCatalogPage: React.FC = () => {
                         <div
                             className="w-full md:w-3/5 bg-gray-100 relative h-[44vh] min-h-[280px] md:h-auto md:min-h-[580px] flex items-center justify-center"
                             onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
                             onTouchEnd={handleTouchEnd}
                             style={{ touchAction: 'pan-y' }}
                         >
@@ -261,7 +261,6 @@ const ManusCatalogPage: React.FC = () => {
                     <div
                         className="relative z-10 w-full h-full max-w-6xl flex items-center justify-center"
                         onTouchStart={handleTouchStart}
-                        onTouchMove={handleTouchMove}
                         onTouchEnd={handleTouchEnd}
                         style={{ touchAction: 'pan-y' }}
                     >

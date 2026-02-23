@@ -29,6 +29,8 @@ const Catalog: React.FC = () => {
   const touchEndX = useRef(0);
   const modalTouchStartX = useRef(0);
   const modalTouchEndX = useRef(0);
+  const expandedTouchStartX = useRef(0);
+  const expandedTouchStartY = useRef(0);
 
   const filteredProducts = allProducts;
 
@@ -139,6 +141,22 @@ const Catalog: React.FC = () => {
     if (modalTouchStartX.current - modalTouchEndX.current < -50) {
       prevGallery();
     }
+  };
+
+  const handleExpandedTouchStart = (e: React.TouchEvent) => {
+    expandedTouchStartX.current = e.targetTouches[0].clientX;
+    expandedTouchStartY.current = e.targetTouches[0].clientY;
+  };
+
+  const handleExpandedTouchEnd = (e: React.TouchEvent) => {
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - expandedTouchStartX.current;
+    const deltaY = endY - expandedTouchStartY.current;
+
+    if (Math.abs(deltaX) < 40 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+    if (deltaX < 0) nextGallery();
+    if (deltaX > 0) prevGallery();
   };
 
   const getWhatsAppLink = (product: CatalogItem) => {
@@ -439,7 +457,12 @@ const Catalog: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-auto">
+                <div
+                  className="relative flex-1 overflow-auto"
+                  onTouchStart={handleExpandedTouchStart}
+                  onTouchEnd={handleExpandedTouchEnd}
+                  style={{ touchAction: 'pan-y' }}
+                >
                   <div className="min-h-full min-w-full flex items-center justify-center p-4 md:p-8">
                     <div
                       style={{ width: `${expandedZoom * 100}%` }}
@@ -452,6 +475,35 @@ const Catalog: React.FC = () => {
                       />
                     </div>
                   </div>
+
+                  {gallery.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevGallery}
+                        className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-dark w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
+                        aria-label="Imagem anterior"
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                      </button>
+                      <button
+                        onClick={nextGallery}
+                        className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 bg-white/80 text-brand-dark w-10 h-10 rounded-full flex items-center justify-center shadow-lg hover:bg-brand-yellow transition"
+                        aria-label="Próxima imagem"
+                      >
+                        <i className="fas fa-chevron-right"></i>
+                      </button>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                        {gallery.map((item, idx) => (
+                          <button
+                            key={`${item.title}-expanded-${idx}`}
+                            onClick={() => setCurrentGalleryIndex(idx)}
+                            className={`h-2 rounded-full transition-all duration-300 ${idx === currentGalleryIndex ? 'w-8 bg-brand-yellow' : 'w-2 bg-gray-400'}`}
+                            aria-label={`Ir para foto ${idx + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             );
