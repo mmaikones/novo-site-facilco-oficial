@@ -5,18 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:full": "npx vercel dev --listen 3000",
     "build": "vite build",
     "preview": "vite preview",
     "generate:catalog-pdf": "node scripts/generate-catalog-pdf.mjs",
     "build:with-catalog-pdf": "npm run build && npm run generate:catalog-pdf"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@types/three": "^0.182.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.26.2",
+    "google-auth-library": "^10.6.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.1.0",
     "lucide-react": "^0.562.0",
