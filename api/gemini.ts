@@ -60,6 +60,7 @@ type UpstreamTarget = {
   label: string;
   url: string;
   headers: Record<string, string>;
+  provider: "vertex" | "gemini";
 };
 
 const parseBody = (rawBody: unknown): GeminiRequestBody => {
@@ -123,12 +124,14 @@ export default async function handler(req: any, res: any) {
     targets.push({
       label: "vertex-global-oauth",
       url: `https://aiplatform.googleapis.com/v1/${modelPath}:generateContent`,
-      headers: authHeaders
+      headers: authHeaders,
+      provider: "vertex"
     });
     targets.push({
       label: "vertex-regional-oauth",
       url: `https://${vertexLocation}-aiplatform.googleapis.com/v1/${modelPath}:generateContent`,
-      headers: authHeaders
+      headers: authHeaders,
+      provider: "vertex"
     });
   }
 
@@ -137,12 +140,14 @@ export default async function handler(req: any, res: any) {
     targets.push({
       label: "vertex-global",
       url: `https://aiplatform.googleapis.com/v1/${modelPath}:generateContent?key=${vertexApiKey}`,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
+      provider: "vertex"
     });
     targets.push({
       label: "vertex-regional",
       url: `https://${vertexLocation}-aiplatform.googleapis.com/v1/${modelPath}:generateContent?key=${vertexApiKey}`,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
+      provider: "vertex"
     });
   }
 
@@ -150,7 +155,8 @@ export default async function handler(req: any, res: any) {
     targets.push({
       label: "gemini-developer-api",
       url: `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${geminiApiKey}`,
-      headers: { "Content-Type": "application/json" }
+      headers: { "Content-Type": "application/json" },
+      provider: "gemini"
     });
   }
 
@@ -174,15 +180,34 @@ export default async function handler(req: any, res: any) {
 
   for (const target of targets) {
     try {
+      const bodyPayload =
+        target.provider === "vertex"
+          ? {
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: `${SYSTEM_INSTRUCTION}\n\nSolicitação do usuário:\n${prompt}`
+                    },
+                    ...(imageBase64 && mimeType
+                      ? [{ inlineData: { data: imageBase64, mimeType } }]
+                      : [])
+                  ]
+                }
+              ]
+            }
+          : {
+              systemInstruction: {
+                parts: [{ text: SYSTEM_INSTRUCTION }]
+              },
+              contents: [{ parts }]
+            };
+
       const upstream = await fetch(target.url, {
         method: "POST",
         headers: target.headers,
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }]
-          },
-          contents: [{ parts }]
-        })
+        body: JSON.stringify(bodyPayload)
       });
 
       if (!upstream.ok) {
