@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/gemini.ts": {
+      "includeFiles": "data/knowledge/site-scrape.json"
+    }
+  },
   "rewrites": [
     {
       "source": "/(.*)",

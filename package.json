@@ -8,6 +8,7 @@
     "dev:full": "npx vercel dev --listen 3000",
     "build": "vite build",
     "preview": "vite preview",
+    "knowledge:scrape": "node scripts/scrape-site-knowledge.mjs",
     "generate:catalog-pdf": "node scripts/generate-catalog-pdf.mjs",
     "build:with-catalog-pdf": "npm run build && npm run generate:catalog-pdf"
   },

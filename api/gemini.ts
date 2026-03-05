@@ -1,6 +1,9 @@
 import { GoogleAuth } from "google-auth-library";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const MODEL_NAME = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
+const KNOWLEDGE_FILE_PATH = path.join(process.cwd(), "data", "knowledge", "site-scrape.json");
 
 const SYSTEM_INSTRUCTION = `Você é a Assistente Técnica Virtual da Facilco Engenharia. Responda sempre em português do Brasil.
 
@@ -83,6 +86,131 @@ type UpstreamTarget = {
   url: string;
   headers: Record<string, string>;
   provider: "vertex" | "gemini";
+};
+
+type SiteKnowledgePage = {
+  path: string;
+  url: string;
+  title?: string;
+  headings?: string[];
+  text?: string;
+};
+
+type SiteKnowledgePayload = {
+  pages?: SiteKnowledgePage[];
+};
+
+const SEARCH_STOPWORDS = new Set([
+  "a",
+  "o",
+  "as",
+  "os",
+  "de",
+  "do",
+  "da",
+  "dos",
+  "das",
+  "e",
+  "em",
+  "na",
+  "no",
+  "nas",
+  "nos",
+  "por",
+  "para",
+  "com",
+  "sem",
+  "um",
+  "uma",
+  "uns",
+  "umas",
+  "que",
+  "como",
+  "sobre",
+  "qual",
+  "quais",
+  "me",
+  "minha",
+  "meu",
+  "preciso",
+  "quero",
+  "ajuda"
+]);
+
+let cachedSiteKnowledge: SiteKnowledgePage[] | null | undefined;
+
+const normalizeForSearch = (value: string) =>
+  value
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const loadSiteKnowledge = async (): Promise<SiteKnowledgePage[] | null> => {
+  if (cachedSiteKnowledge !== undefined) return cachedSiteKnowledge;
+
+  try {
+    const raw = await fs.readFile(KNOWLEDGE_FILE_PATH, "utf-8");
+    const payload = JSON.parse(raw) as SiteKnowledgePayload;
+    const pages = Array.isArray(payload.pages) ? payload.pages : [];
+    cachedSiteKnowledge = pages;
+    return cachedSiteKnowledge;
+  } catch (error) {
+    cachedSiteKnowledge = null;
+    console.warn("Knowledge base file unavailable", error);
+    return null;
+  }
+};
+
+const buildKnowledgeContext = async (prompt: string): Promise<string> => {
+  const pages = await loadSiteKnowledge();
+  if (!pages?.length) return "";
+
+  const tokens = Array.from(
+    new Set(
+      normalizeForSearch(prompt)
+        .split(" ")
+        .map((token) => token.trim())
+        .filter((token) => token.length >= 3 && !SEARCH_STOPWORDS.has(token))
+    )
+  );
+
+  if (!tokens.length) return "";
+
+  const ranked = pages
+    .map((page) => {
+      const haystack = normalizeForSearch(`${page.title || ""} ${(page.headings || []).join(" ")} ${page.text || ""}`);
+      let score = 0;
+
+      for (const token of tokens) {
+        if (!haystack.includes(token)) continue;
+        const occurrences = haystack.split(token).length - 1;
+        score += occurrences * Math.min(token.length, 12);
+      }
+
+      return { page, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  if (!ranked.length) return "";
+
+  const lines = ranked.map(({ page }, index) => {
+    const title = page.title?.trim() || page.path;
+    const headings = (page.headings || []).slice(0, 8).join(" | ");
+    const excerpt = (page.text || "").slice(0, 1300).trim();
+
+    return `[Fonte ${index + 1}] Página: ${page.path}
+Título: ${title}
+Tópicos: ${headings || "N/A"}
+Trecho: ${excerpt}`;
+  });
+
+  return `CONHECIMENTO INTERNO RASPADO DO SITE FACILCO (use como base factual):
+${lines.join("\n\n")}`;
 };
 
 const parseBody = (rawBody: unknown): GeminiRequestBody => {
@@ -193,7 +321,12 @@ export default async function handler(req: any, res: any) {
   const imageBase64 = body.imageBase64?.trim();
   const mimeType = body.mimeType?.trim();
 
-  const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: prompt }];
+  const knowledgeContext = await buildKnowledgeContext(prompt);
+  const promptWithContext = knowledgeContext
+    ? `${knowledgeContext}\n\nSolicitação do usuário:\n${prompt}`
+    : `Solicitação do usuário:\n${prompt}`;
+
+  const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [{ text: promptWithContext }];
   if (imageBase64 && mimeType) {
     parts.push({ inlineData: { data: imageBase64, mimeType } });
   }
@@ -210,7 +343,7 @@ export default async function handler(req: any, res: any) {
                   role: "user",
                   parts: [
                     {
-                      text: `${SYSTEM_INSTRUCTION}\n\nSolicitação do usuário:\n${prompt}`
+                      text: `${SYSTEM_INSTRUCTION}\n\n${promptWithContext}`
                     },
                     ...(imageBase64 && mimeType
                       ? [{ inlineData: { data: imageBase64, mimeType } }]
